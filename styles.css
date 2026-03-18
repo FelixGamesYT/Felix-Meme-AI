@@ -1,22 +1,85 @@
-body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; display: flex; justify-content: center; padding: 15px; margin: 0; }
-.container { background: #1e293b; padding: 20px; border-radius: 20px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
-h1 { font-size: 1.5rem; margin-bottom: 20px; color: #38bdf8; }
-
-.theme-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-.theme-btn { padding: 12px; border: none; border-radius: 10px; background: #334155; color: white; cursor: pointer; font-size: 14px; transition: 0.2s; }
-.theme-btn.active { background: #38bdf8; color: #0f172a; font-weight: bold; }
-
-.upload-box { border: 2px dashed #38bdf8; padding: 30px; border-radius: 15px; cursor: pointer; background: rgba(56, 189, 248, 0.05); }
-.meme-container { position: relative; margin-top: 15px; line-height: 0; overflow: hidden; border-radius: 10px; }
-#uploadedImage { width: 100%; height: auto; display: block; }
-
-.meme-text { 
-    position: absolute; width: 100%; text-align: center; color: white; 
-    font-weight: 900; font-size: 24px; text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
-    left: 0; text-transform: uppercase; padding: 0 10px; box-sizing: border-box; line-height: 1.1;
+body {
+    background-color: #0f0f0f;
+    color: white;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
 }
-#topText { top: 15px; }
-#bottomText { bottom: 15px; }
 
-#downloadBtn { margin-top: 15px; padding: 15px; width: 100%; border: none; border-radius: 10px; background: #22c55e; color: white; font-weight: bold; cursor: pointer; }
-#loadingArea { margin: 20px 0; color: #38bdf8; font-weight: bold; }
+.container {
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+}
+
+/* Estilo dos Novos Inputs */
+.custom-settings input {
+    width: 90%;
+    padding: 12px;
+    margin: 5px auto;
+    border-radius: 10px;
+    border: 1px solid #333;
+    background: #1a1a1a;
+    color: white;
+    display: block;
+}
+
+.theme-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.theme-btn {
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    background: #333;
+    color: white;
+    cursor: pointer;
+}
+
+.theme-btn.active {
+    background: #007bff;
+}
+
+.upload-box {
+    border: 2px dashed #444;
+    padding: 40px;
+    border-radius: 15px;
+    cursor: pointer;
+    background: #1a1a1a;
+}
+
+.meme-container {
+    position: relative;
+    display: inline-block;
+    margin-top: 20px;
+}
+
+.meme-text {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    color: white;
+    font-weight: bold;
+    font-size: 24px;
+    text-transform: uppercase;
+    text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
+    left: 0;
+}
+
+#topText { top: 10px; }
+#bottomText { bottom: 10px; }
+
+#downloadBtn {
+    margin-top: 20px;
+    padding: 15px 30px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+}
