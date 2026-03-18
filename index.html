@@ -5,20 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MemeVision IA</title>
     <link rel="stylesheet" href="styles.css">
-    
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#007bff">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3448/3448650.png">
 </head>
 <body>
     <div class="container">
         <h1>🎭 MemeVision IA</h1>
-
-        <div class="custom-settings">
-            <input type="text" id="customTheme" placeholder="Tema (Ex: Minecraft, Escola, Café)">
-            <input type="text" id="customLang" placeholder="Idioma" value="Português">
+        <input type="text" id="customTheme" placeholder="Tema do meme...">
+        <input type="text" id="customLang" value="Português">
+        
+        <div class="theme-selector">
+            <button class="theme-btn active" onclick="setTheme(this, 'engraçado')">😂 Rir</button>
+            <button class="theme-btn" onclick="setTheme(this, 'sarcástico')">🙄 Sarcasmo</button>
         </div>
 
-        <div class="theme-selector">
-            <button class="theme-btn active" data-theme="engraçado">😂 Engraçado</
+        <div id="uploadArea" class="upload-box" onclick="document.getElementById('fileInput').click()">
+            <p>📸 TOQUE PARA FOTO</p>
+            <input type="file" id="fileInput" style="display:none" onchange="gerarMemeIA(this.files[0])">
+        </div>
+
+        <div id="loadingArea" style="display:none">IA Pensando...</div>
+
+        <div id="resultArea" style="display:none">
+            <div id="memeExport" class="meme-container">
+                <img id="uploadedImage">
+                <div id="topText" class="meme-text"></div>
+                <div id="bottomText" class="meme-text"></div>
+            </div>
+            <button id="downloadBtn" onclick="baixarMeme()">💾 Baixar</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="script.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+    </script>
+</body>
+</html>
