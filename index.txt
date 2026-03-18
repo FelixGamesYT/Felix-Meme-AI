@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MemeVision IA</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🎭 MemeVision IA</h1>
+        
+        <div class="theme-selector">
+            <button class="theme-btn active" data-theme="engraçado">😂 Engraçado</button>
+            <button class="theme-btn" data-theme="sarcástico">🙄 Sarcástico</button>
+            <button class="theme-btn" data-theme="nerd">🤓 Nerd</button>
+            <button class="theme-btn" data-theme="atrevido">😏 Atrevido</button>
+        </div>
+
+        <div id="uploadArea" class="upload-box">
+            <p>📸 Toque para carregar foto</p>
+            <input type="file" id="fileInput" accept="image/*" style="display: none;">
+        </div>
+
+        <div id="loadingArea" style="display: none;">
+            <div class="spinner"></div>
+            <p>Gemini analisando...</p>
+        </div>
+
+        <div id="resultArea" style="display: none;">
+            <div class="meme-container" id="memeExport">
+                <img id="uploadedImage" src="">
+                <div id="topText" class="meme-text"></div>
+                <div id="bottomText" class="meme-text"></div>
+            </div>
+            <button id="downloadBtn">💾 Baixar Meme</button>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
