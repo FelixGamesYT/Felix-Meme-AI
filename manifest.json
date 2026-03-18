@@ -1,0 +1,17 @@
+{
+  "name": "MemeVision IA Pro",
+  "short_name": "MemeVision",
+  "description": "Criação de memes inteligentes com Gemini IA",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#007bff",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3553/3553655.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
