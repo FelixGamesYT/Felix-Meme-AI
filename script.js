@@ -1,101 +1,58 @@
-let API_KEY = localStorage.getItem('gemini_key') || "";
 let currentTheme = "engraçado";
 
-// Inicialização segura
-window.onload = () => {
-    const uploadArea = document.getElementById('uploadArea');
-    const fileInput = document.getElementById('fileInput');
-
-    // Correção do Toque
-    if (uploadArea) {
-        uploadArea.onclick = () => fileInput.click();
-    }
-
-    if (fileInput) {
-        fileInput.onchange = (e) => {
-            if (e.target.files[0]) gerarMemeIA(e.target.files[0]);
-        };
-    }
-
-    // Botão de Download
-    const downloadBtn = document.getElementById('downloadBtn');
-    if (downloadBtn) {
-        downloadBtn.onclick = async () => {
-            const canvas = await html2canvas(document.getElementById('memeExport'), { useCORS: true });
-            const link = document.createElement('a');
-            link.download = `meme-${Date.now()}.png`;
-            link.href = canvas.toDataURL();
-            link.click();
-        };
-    }
-};
-
-// Seletor de Humores
-document.querySelectorAll('.theme-btn').forEach(btn => {
-    btn.onclick = () => {
-        document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentTheme = btn.dataset.theme;
-    };
-});
+function setTheme(btn, theme) {
+    document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentTheme = theme;
+}
 
 async function gerarMemeIA(file) {
-    if (!API_KEY) {
-        API_KEY = prompt("Cole sua Gemini API KEY:");
-        if (API_KEY) localStorage.setItem('gemini_key', API_KEY);
-        else return;
-    }
+    if (!file) return;
 
-    const loading = document.getElementById('loadingArea');
-    const result = document.getElementById('resultArea');
-    loading.style.display = 'block';
-    result.style.display = 'none';
+    let apiKey = localStorage.getItem('gemini_key') || prompt("Cole sua Gemini API Key:");
+    if (apiKey) localStorage.setItem('gemini_key', apiKey);
+    else return;
 
-    try {
-        // 1. Busca automática do modelo
-        const mRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${API_KEY}`);
-        const mData = await mRes.json();
-        const model = mData.models.find(m => m.supportedGenerationMethods.includes("generateContent")).name;
+    document.getElementById('loadingArea').style.display = 'block';
+    document.getElementById('resultArea').style.display = 'none';
 
-        // 2. Coleta tema e idioma
-        const userTheme = document.getElementById('customTheme').value || "Geral";
-        const userLang = document.getElementById('customLang').value || "Português";
-
-        // 3. Processa imagem
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        const base64 = await new Promise(r => reader.onload = () => r(reader.result.split(',')[1]));
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = async () => {
+        const base64 = reader.result.split(',')[1];
         document.getElementById('uploadedImage').src = URL.createObjectURL(file);
 
-        // 4. Envia para o Gemini
-        const url = `https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${API_KEY}`;
-        const response = await fetch(url, {
-            method: 'POST',
-            body: JSON.stringify({
-                contents: [{ parts: [
-                    { text: `Analise a imagem e crie um meme sobre "${userTheme}" em "${userLang}". O estilo deve ser ${currentTheme}. Retorne estritamente no formato: TEXTO CIMA | TEXTO BAIXO` },
-                    { inline_data: { mime_type: "image/jpeg", data: base64 } }
-                ]}]
-            })
-        });
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    contents: [{ parts: [
+                        { text: `Analise a imagem e crie um meme sobre "${document.getElementById('customTheme').value || 'geral'}". Estilo: ${currentTheme}. Retorne estritamente: TEXTO CIMA | TEXTO BAIXO` },
+                        { inline_data: { mime_type: "image/jpeg", data: base64 } }
+                    ]}]
+                })
+            });
 
-        const data = await response.json();
-        let textoFull = data.candidates[0].content.parts[0].text;
-        
-        // Limpeza de segurança: remove rótulos chatos da IA
-        textoFull = textoFull.replace(/TEXTO CIMA:/gi, "").replace(/TEXTO BAIXO:/gi, "");
-        
-        const partes = textoFull.split('|');
-        
-        document.getElementById('topText').innerText = partes[0] ? partes[0].trim() : "";
-        document.getElementById('bottomText').innerText = partes[1] ? partes[1].trim() : "";
-        
-        loading.style.display = 'none';
-        result.style.display = 'block';
+            const data = await response.json();
+            let texto = data.candidates[0].content.parts[0].text.replace(/TEXTO CIMA:|TEXTO BAIXO:|CIMA:|BAIXO:/gi, "");
+            const partes = texto.split('|');
 
-    } catch (err) {
-        console.error(err);
-        alert("Erro na conexão ou chave inválida!");
-        loading.style.display = 'none';
-    }
+            document.getElementById('topText').innerText = partes[0]?.trim() || "";
+            document.getElementById('bottomText').innerText = partes[1]?.trim() || "";
+            
+            document.getElementById('loadingArea').style.display = 'none';
+            document.getElementById('resultArea').style.display = 'block';
+        } catch (e) {
+            alert("Erro na IA!");
+            document.getElementById('loadingArea').style.display = 'none';
+        }
+    };
+}
+
+async function baixarMeme() {
+    const canvas = await html2canvas(document.getElementById('memeExport'), { useCORS: true });
+    const link = document.createElement('a');
+    link.download = `meme-${Date.now()}.png`;
+    link.href = canvas.toDataURL();
+    link.click();
 }
