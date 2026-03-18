@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MemeVision IA</title>
     <link rel="stylesheet" href="styles.css">
+    
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#007bff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3448/3448650.png">
 </head>
 <body>
     <div class="container">
@@ -18,39 +21,4 @@
         </div>
 
         <div class="theme-selector">
-            <button class="theme-btn active" data-theme="engraçado">😂 Engraçado</button>
-            <button class="theme-btn" data-theme="sarcástico">🙄 Sarcástico</button>
-            <button class="theme-btn" data-theme="nerd">🤓 Nerd</button>
-            <button class="theme-btn" data-theme="atrevido">😏 Atrevido</button>
-        </div>
-
-        <div id="uploadArea" class="upload-box">
-            <p>📸 Toque para carregar foto</p>
-            <input type="file" id="fileInput" accept="image/*" style="display: none;">
-        </div>
-
-        <div id="loadingArea" style="display: none;">
-            <div class="spinner"></div>
-            <p>Buscando modelo e analisando...</p>
-        </div>
-
-        <div id="resultArea" style="display: none;">
-            <div class="meme-container" id="memeExport">
-                <img id="uploadedImage" src="">
-                <div id="topText" class="meme-text"></div>
-                <div id="bottomText" class="meme-text"></div>
-            </div>
-            <button id="downloadBtn">💾 Baixar Meme</button>
-        </div>
-    </div>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script>
-        // Registro do Service Worker para PWA
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
-    </script>
-    <script src="script.js"></script>
-</body>
-</html>
+            <button class="theme-btn active" data-theme="engraçado">😂 Engraçado</
