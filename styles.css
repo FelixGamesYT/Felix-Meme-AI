@@ -1,85 +1,31 @@
-body {
-    background-color: #0f0f0f;
-    color: white;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    display: flex;
-    justify-content: center;
-    padding: 20px;
-}
+body { background-color: #0f0f0f; color: white; font-family: sans-serif; display: flex; justify-content: center; padding: 20px; }
+.container { width: 100%; max-width: 500px; text-align: center; }
 
-.container {
-    width: 100%;
-    max-width: 500px;
-    text-align: center;
-}
-
-/* Estilo dos Novos Inputs */
 .custom-settings input {
-    width: 90%;
-    padding: 12px;
-    margin: 5px auto;
-    border-radius: 10px;
-    border: 1px solid #333;
-    background: #1a1a1a;
-    color: white;
-    display: block;
+    width: 90%; padding: 12px; margin: 8px auto; border-radius: 10px;
+    border: 1px solid #333; background: #1a1a1a; color: white; display: block;
 }
 
-.theme-selector {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin: 20px 0;
-}
+.theme-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
+.theme-btn { padding: 12px; border-radius: 8px; border: none; background: #333; color: white; cursor: pointer; transition: 0.3s; }
+.theme-btn.active { background: #007bff; font-weight: bold; }
 
-.theme-btn {
-    padding: 10px;
-    border-radius: 8px;
-    border: none;
-    background: #333;
-    color: white;
-    cursor: pointer;
-}
+.upload-box { border: 2px dashed #444; padding: 40px; border-radius: 15px; cursor: pointer; background: #1a1a1a; margin-top: 10px; }
+.upload-box:active { background: #222; }
 
-.theme-btn.active {
-    background: #007bff;
-}
-
-.upload-box {
-    border: 2px dashed #444;
-    padding: 40px;
-    border-radius: 15px;
-    cursor: pointer;
-    background: #1a1a1a;
-}
-
-.meme-container {
-    position: relative;
-    display: inline-block;
-    margin-top: 20px;
-}
+.meme-container { position: relative; display: inline-block; margin-top: 20px; width: 100%; }
+.meme-container img { width: 100%; border-radius: 10px; display: block; }
 
 .meme-text {
-    position: absolute;
-    width: 100%;
-    text-align: center;
-    color: white;
-    font-weight: bold;
-    font-size: 24px;
-    text-transform: uppercase;
-    text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
-    left: 0;
+    position: absolute; width: 95%; text-align: center; color: white; font-weight: 900;
+    font-size: 28px; text-transform: uppercase; left: 50%; transform: translateX(-50%);
+    text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 0 0 10px rgba(0,0,0,0.5);
+    line-height: 1.2;
 }
+#topText { top: 15px; }
+#bottomText { bottom: 15px; }
 
-#topText { top: 10px; }
-#bottomText { bottom: 10px; }
+.spinner { border: 4px solid rgba(255,255,255,0.1); border-left-color: #007bff; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 10px auto; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-#downloadBtn {
-    margin-top: 20px;
-    padding: 15px 30px;
-    background: #28a745;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-weight: bold;
-}
+#downloadBtn { margin-top: 20px; padding: 15px 30px; background: #28a745; color: white; border: none; border-radius: 10px; cursor: pointer; width: 100%; font-size: 16px; }
