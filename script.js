@@ -7,20 +7,27 @@ window.onload = () => {
     const fileInput = document.getElementById('fileInput');
 
     // Correção do Toque
-    uploadArea.onclick = () => fileInput.click();
+    if (uploadArea) {
+        uploadArea.onclick = () => fileInput.click();
+    }
 
-    fileInput.onchange = (e) => {
-        if (e.target.files[0]) gerarMemeIA(e.target.files[0]);
-    };
+    if (fileInput) {
+        fileInput.onchange = (e) => {
+            if (e.target.files[0]) gerarMemeIA(e.target.files[0]);
+        };
+    }
 
     // Botão de Download
-    document.getElementById('downloadBtn').onclick = async () => {
-        const canvas = await html2canvas(document.getElementById('memeExport'), { useCORS: true });
-        const link = document.createElement('a');
-        link.download = `meme-${Date.now()}.png`;
-        link.href = canvas.toDataURL();
-        link.click();
-    };
+    const downloadBtn = document.getElementById('downloadBtn');
+    if (downloadBtn) {
+        downloadBtn.onclick = async () => {
+            const canvas = await html2canvas(document.getElementById('memeExport'), { useCORS: true });
+            const link = document.createElement('a');
+            link.download = `meme-${Date.now()}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        };
+    }
 };
 
 // Seletor de Humores
@@ -45,7 +52,7 @@ async function gerarMemeIA(file) {
     result.style.display = 'none';
 
     try {
-        // 1. Busca automática do modelo (v1beta para garantir suporte)
+        // 1. Busca automática do modelo
         const mRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${API_KEY}`);
         const mData = await mRes.json();
         const model = mData.models.find(m => m.supportedGenerationMethods.includes("generateContent")).name;
@@ -66,24 +73,29 @@ async function gerarMemeIA(file) {
             method: 'POST',
             body: JSON.stringify({
                 contents: [{ parts: [
-                    { text: `Analise a imagem e crie um meme sobre "${userTheme}" em "${userLang}". O estilo deve ser ${currentTheme}. Retorne estritamente: TEXTO CIMA | TEXTO BAIXO` },
+                    { text: `Analise a imagem e crie um meme sobre "${userTheme}" em "${userLang}". O estilo deve ser ${currentTheme}. Retorne estritamente no formato: TEXTO CIMA | TEXTO BAIXO` },
                     { inline_data: { mime_type: "image/jpeg", data: base64 } }
                 ]}]
             })
         });
 
         const data = await response.json();
-        const texto = data.candidates[0].content.parts[0].text;
-        const [top, bottom] = texto.split('|');
-
-        document.getElementById('topText').innerText = top?.trim() || "";
-        document.getElementById('bottomText').innerText = bottom?.trim() || "";
+        let textoFull = data.candidates[0].content.parts[0].text;
+        
+        // Limpeza de segurança: remove rótulos chatos da IA
+        textoFull = textoFull.replace(/TEXTO CIMA:/gi, "").replace(/TEXTO BAIXO:/gi, "");
+        
+        const partes = textoFull.split('|');
+        
+        document.getElementById('topText').innerText = partes[0] ? partes[0].trim() : "";
+        document.getElementById('bottomText').innerText = partes[1] ? partes[1].trim() : "";
         
         loading.style.display = 'none';
         result.style.display = 'block';
+
     } catch (err) {
         console.error(err);
-        alert("Erro na conexão! Verifique sua chave.");
+        alert("Erro na conexão ou chave inválida!");
         loading.style.display = 'none';
     }
 }
