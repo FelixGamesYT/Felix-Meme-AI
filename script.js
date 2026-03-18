@@ -54,20 +54,30 @@ async function gerarMemeIA(file) {
     result.style.display = 'none';
     
     try {
+        // 1. BUSCA AUTOMÁTICA DE MODELO (O "Pulo do Gato")
+        // Vamos perguntar ao Google quais modelos estão ativos para a sua chave
+        const modelsResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/models?key=" + API_KEY);
+        const modelsData = await modelsResponse.json();
+        
+        // Pegamos o primeiro modelo que aceite gerar conteúdo (geralmente o Flash ou Pro)
+        const modeloAtivo = modelsData.models.find(m => m.supportedGenerationMethods.includes("generateContent")).name;
+        console.log("Usando o modelo: " + modeloAtivo);
+
+        // 2. PREPARA A IMAGEM
         const reader = new FileReader();
         reader.readAsDataURL(file);
         const base64Data = await new Promise(resolve => {
             reader.onload = () => resolve(reader.result.split(',')[1]);
         });
 
-        // Link oficial e estável (v1)
-        const url = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=" + API_KEY;
+        // 3. USA O MODELO QUE O SITE ACHOU SOZINHO
+        const url = "https://generativelanguage.googleapis.com/v1beta/" + modeloAtivo + ":generateContent?key=" + API_KEY;
 
         const response = await fetch(url, {
             method: 'POST',
             body: JSON.stringify({
                 contents: [{ parts: [
-                    { text: "Crie um meme " + currentTheme + " para esta imagem. Retorne: TEXTO CIMA | TEXTO BAIXO" },
+                    { text: "Analise a imagem e crie um meme " + currentTheme + ". Retorne APENAS: TEXTO CIMA | TEXTO BAIXO" },
                     { inline_data: { mime_type: "image/jpeg", data: base64Data } }
                 ]}]
             })
@@ -76,13 +86,7 @@ async function gerarMemeIA(file) {
         const data = await response.json();
         
         if (data.error) {
-            // Se a chave estiver errada ou expirada, limpamos para pedir de novo
-            if (data.error.status === "PERMISSION_DENIED") {
-                localStorage.removeItem('GEMINI_KEY');
-                alert("Sua chave foi negada pelo Google. Verifique se copiou a nova chave corretamente.");
-            } else {
-                alert("Erro do Google: " + data.error.message);
-            }
+            alert("Erro do Google: " + data.error.message);
             loading.style.display = 'none';
             return;
         }
@@ -96,7 +100,8 @@ async function gerarMemeIA(file) {
         loading.style.display = 'none';
         result.style.display = 'block';
     } catch (error) {
-        alert("Erro técnico. Tente atualizar a página.");
+        console.error(error);
+        alert("Erro técnico ou chave inválida. Tente novamente.");
         loading.style.display = 'none';
     }
 }
