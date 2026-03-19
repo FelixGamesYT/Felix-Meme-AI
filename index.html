@@ -9,40 +9,44 @@
     <meta name="theme-color" content="#007bff">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <!-- Referência ao seu ícone no GitHub -->
     <link rel="apple-touch-icon" href="icon.png">
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { background: #000; color: #fff; font-family: sans-serif; padding: 15px; }
+        body { background: #000; color: #fff; font-family: sans-serif; padding: 15px; overflow-x: hidden; }
         
-        .container { max-width: 500px; margin: 0 auto; background: #1a1a1a; padding: 20px; border-radius: 24px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .container { max-width: 500px; margin: 0 auto; background: #1a1a1a; padding: 20px; border-radius: 24px; border: 1px solid #333; }
         
-        h1 { text-align: center; margin-bottom: 20px; color: #007bff; font-size: 1.6rem; letter-spacing: -1px; }
+        h1 { text-align: center; margin-bottom: 20px; color: #007bff; font-size: 1.6rem; }
         .box { background: #222; padding: 15px; border-radius: 14px; margin-bottom: 12px; border: 1px solid #2a2a2a; }
         .row { display: flex; gap: 10px; margin-bottom: 12px; }
         .flex-1 { flex: 1; }
         
         label { font-size: 9px; color: #aaa; display: block; margin-bottom: 4px; text-transform: uppercase; font-weight: bold; }
         input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #3d3d3d; background: #0c0c0c; color: #fff; outline: none; font-size: 14px; }
-        input:focus { border-color: #007bff; }
 
         #uploadArea { 
             width: 100%; height: 100px; border: 2px dashed #444; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
             border-radius: 16px; cursor: pointer; background: #111; margin-bottom: 15px;
+            text-align: center;
         }
 
+        /* BOTÃO REFORÇADO */
         .btn-gerar { 
-            width: 100%; padding: 18px; background: #007bff; color: white; 
-            border: none; border-radius: 14px; font-weight: 800; font-size: 1rem;
+            width: 100%; padding: 20px; background: #007bff; color: white; 
+            border: none; border-radius: 14px; font-weight: 800; font-size: 1.1rem;
             cursor: pointer; display: none; text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+            transition: transform 0.1s;
         }
+        .btn-gerar:active { transform: scale(0.98); background: #0056b3; }
 
-        #statusArea { display: none; margin-top: 10px; font-size: 13px; background: #00152e; padding: 12px; border-radius: 10px; border-left: 4px solid #007bff; }
-        .scanning { color: #007bff; font-weight: bold; }
+        #statusArea { display: none; margin-top: 10px; font-size: 13px; background: #00152e; padding: 15px; border-radius: 10px; border-left: 4px solid #007bff; }
+        .scanning { color: #007bff; font-weight: bold; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
 
         #resultArea { display: none; margin-top: 20px; }
         .meme-card { position: relative; width: 100%; background: #000; border-radius: 12px; overflow: hidden; border: 2px solid #333; line-height: 0; }
@@ -57,48 +61,44 @@
             text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
             z-index: 10;
         }
-        .top { top: 5px; }
-        .bottom { bottom: 10px; }
+        .top { top: 10px; }
+        .bottom { bottom: 15px; }
 
         .btn-save { width: 100%; padding: 16px; background: #28a745; color: white; border: none; border-radius: 14px; margin-top: 15px; font-weight: bold; cursor: pointer; }
-        
-        @media (max-width: 450px) {
-            .meme-text { font-size: 1.6rem; }
-        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🎭 MemeVision v4.4</h1>
+    <h1>🎭 MemeVision v4.5</h1>
 
     <div class="box">
         <label>Chave da API:</label>
-        <input type="password" id="apiKey">
+        <input type="password" id="apiKey" placeholder="Sua Gemini Key">
     </div>
 
     <div class="row">
         <div class="flex-1">
             <label>Gírias (País):</label>
-            <input type="text" id="idioma">
+            <input type="text" id="idioma" placeholder="Ex: Brasil">
         </div>
         <div class="flex-1">
             <label>Tema:</label>
-            <input type="text" id="tema">
+            <input type="text" id="tema" placeholder="Ex: Jogos">
         </div>
     </div>
 
     <div id="uploadArea" onclick="document.getElementById('fileInput').click()">
-        <span>🖼️</span>
-        <p id="upText">Toque para Foto</p>
-        <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="preview(this.files[0])">
+        <span style="font-size: 1.5rem;">📸</span>
+        <p id="upText" style="font-size: 12px; margin-top: 5px;">Toque para escolher foto</p>
+        <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="previewImagem(this)">
     </div>
 
-    <button id="btnGerar" class="btn-gerar" onclick="iniciarFluxo()">🚀 CRIAR MEME</button>
+    <button id="btnGerar" class="btn-gerar" onclick="iniciarFluxo()">🚀 GERAR MEU MEME</button>
     
     <div id="statusArea">
-        <p id="currentAction" class="scanning">Aguardando...</p>
-        <p id="currentModel" style="color: #66a3ff; font-size: 10px; margin-top: 4px;"></p>
+        <p id="currentAction" class="scanning">Iniciando...</p>
+        <p id="currentModel" style="color: #66a3ff; font-size: 10px; margin-top: 5px; font-family: monospace;"></p>
     </div>
 
     <div id="resultArea">
@@ -108,33 +108,45 @@
             <div id="tBottom" class="meme-text bottom"></div>
         </div>
         <button class="btn-save" onclick="baixar()">💾 SALVAR MEME</button>
-        <button style="width:100%; background:none; border:none; color:#888; padding:12px; margin-top:5px;" onclick="location.reload()">Novo Meme</button>
+        <button style="width:100%; background:none; border:none; color:#888; padding:12px; margin-top:5px; font-size: 12px; text-decoration: underline;" onclick="location.reload()">Escolher outra foto</button>
     </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
-    // PWA Service Worker
+    // Registro do PWA
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js').then(() => console.log("PWA Registrado"));
+        navigator.serviceWorker.register('sw.js').catch(() => {});
     }
 
+    // Recupera dados salvos
     document.getElementById('apiKey').value = localStorage.getItem('gemini_key') || "";
     document.getElementById('idioma').value = localStorage.getItem('meme_lang') || "Brasil";
 
-    function preview(f) {
-        if(!f) return;
-        document.getElementById('upText').innerText = "✅ Foto pronta!";
-        document.getElementById('btnGerar').style.display = 'block';
+    function previewImagem(input) {
+        if (input.files && input.files[0]) {
+            document.getElementById('upText').innerText = "✅ Foto carregada!";
+            document.getElementById('btnGerar').style.display = 'block';
+            
+            // Preview imediato da imagem
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('imgMeme').src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
     }
 
     async function iniciarFluxo() {
+        console.log("Iniciando fluxo...");
         const key = document.getElementById('apiKey').value.trim();
         const file = document.getElementById('fileInput').files[0];
         const lang = document.getElementById('idioma').value.trim();
         const theme = document.getElementById('tema').value.trim();
         
-        if(!key || !file) return alert("Falta a chave ou a foto!");
+        if(!key) return alert("Por favor, insira sua API Key!");
+        if(!file) return alert("Por favor, selecione uma foto!");
+
         localStorage.setItem('gemini_key', key);
         localStorage.setItem('meme_lang', lang);
 
@@ -143,15 +155,18 @@
         const modelTxt = document.getElementById('currentModel');
         const btn = document.getElementById('btnGerar');
 
-        btn.style.display = 'none';
+        // Feedback visual imediato
+        btn.disabled = true;
+        btn.innerText = "PROCESSANDO...";
         statusArea.style.display = 'block';
-        document.getElementById('resultArea').style.display = 'none';
+        actionTxt.innerText = "🔍 Buscando modelos ativos...";
 
         try {
-            actionTxt.innerText = "🔍 Buscando modelos...";
             const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
             const listData = await listRes.json();
             
+            if (!listRes.ok) throw new Error(listData.error?.message || "Erro ao validar chave");
+
             let modelosPossiveis = listData.models
                 .filter(m => m.supportedGenerationMethods.includes("generateContent"))
                 .map(m => m.name);
@@ -163,61 +178,71 @@
                 return (sA === -1 ? 99 : sA) - (sB === -1 ? 99 : sB);
             });
 
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = async () => {
-                const base64 = reader.result.split(',')[1];
-                document.getElementById('imgMeme').src = reader.result;
+            // Converter imagem para Base64
+            actionTxt.innerText = "⏳ Preparando imagem...";
+            const base64 = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = (e) => reject(e);
+            });
 
-                for (let model of modelosPossiveis) {
-                    modelTxt.innerText = `Tentando: ${model}`;
-                    
-                    let prompt = `Create a short, funny meme for this image. 
-                    CONTEXT/SLANG: ${lang}. THEME: ${theme || 'Free'}.
-                    FORMAT: TOP TEXT | BOTTOM TEXT. 
-                    Return ONLY the meme text. No labels.`;
+            let sucesso = false;
 
-                    try {
-                        const resMeme = await fetch(`https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${key}`, {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({
-                                contents: [{ parts: [
-                                    { text: prompt },
-                                    { inline_data: { mime_type: "image/jpeg", data: base64 } }
-                                ]}]
-                            })
-                        });
+            for (let model of modelosPossiveis) {
+                modelTxt.innerText = `Usando: ${model}`;
+                actionTxt.innerText = "🎨 IA criando a piada...";
 
-                        const data = await resMeme.json();
-                        if (resMeme.ok && data.candidates) {
-                            let text = data.candidates[0].content.parts[0].text;
-                            text = text.replace(/TOP|BOTTOM|TEXT|CIMA|BAIXO|:|#|\*/gi, "").trim();
-                            const partes = text.split('|');
-                            
-                            document.getElementById('tTop').innerText = partes[0] ? partes[0].trim() : "";
-                            document.getElementById('tBottom').innerText = partes[1] ? partes[1].trim() : "";
-                            
-                            statusArea.style.display = 'none';
-                            document.getElementById('resultArea').style.display = 'block';
-                            return; 
-                        }
-                    } catch (e) {}
+                try {
+                    const resMeme = await fetch(`https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${key}`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            contents: [{ parts: [
+                                { text: `Analise a foto e crie um meme engraçado. IDIOMA/GÍRIAS: ${lang}. TEMA: ${theme || 'Livre'}. FORMATO: TEXTO DE CIMA | TEXTO DE BAIXO. Responda apenas o texto do meme, sem labels.` },
+                                { inline_data: { mime_type: "image/jpeg", data: base64 } }
+                            ]}]
+                        })
+                    });
+
+                    const data = await resMeme.json();
+                    if (resMeme.ok && data.candidates && data.candidates[0].content.parts[0].text) {
+                        let rawText = data.candidates[0].content.parts[0].text;
+                        rawText = rawText.replace(/TOP|BOTTOM|TEXT|CIMA|BAIXO|:|#|\*/gi, "").trim();
+                        
+                        const partes = rawText.split('|');
+                        document.getElementById('tTop').innerText = partes[0] ? partes[0].trim() : "";
+                        document.getElementById('tBottom').innerText = partes[1] ? partes[1].trim() : "";
+                        
+                        sucesso = true;
+                        break;
+                    }
+                } catch (e) {
+                    console.error("Falha no modelo " + model);
                 }
-                throw new Error("Erro nos modelos. Verifique a chave.");
-            };
+            }
+
+            if (!sucesso) throw new Error("Cota excedida ou erro na IA. Tente em 1 minuto.");
+
+            statusArea.style.display = 'none';
+            btn.style.display = 'none';
+            document.getElementById('resultArea').style.display = 'block';
+
         } catch (e) {
-            actionTxt.innerText = "🚨 " + e.message;
-            btn.style.display = 'block';
+            alert("Erro: " + e.message);
+            actionTxt.innerText = "🚨 Erro detectado";
+            btn.disabled = false;
+            btn.innerText = "🚀 TENTAR NOVAMENTE";
         }
     }
 
     async function baixar() {
-        const c = await html2canvas(document.getElementById('memeExport'), { scale: 3, useCORS: true });
-        const l = document.createElement('a');
-        l.download = `MemeVision_${Date.now()}.png`;
-        l.href = c.toDataURL("image/png");
-        l.click();
+        const node = document.getElementById('memeExport');
+        const canvas = await html2canvas(node, { scale: 3, useCORS: true });
+        const link = document.createElement('a');
+        link.download = `MemeVision_${Date.now()}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
     }
 </script>
 </body>
