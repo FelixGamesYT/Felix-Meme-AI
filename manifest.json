@@ -1,11 +1,11 @@
 {
   "name": "MemeVision IA Pro",
   "short_name": "MemeVision",
-  "description": "Criação de memes inteligentes com Gemini IA",
-  "start_url": "index.html",
+  "description": "Criação de memes inteligentes com Gemini IA e Voz",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#007bff",
+  "background_color": "#050505",
+  "theme_color": "#3b82f6",
   "icons": [
     {
       "src": "icon.png",
@@ -15,3 +15,4 @@
     }
   ]
 }
+
