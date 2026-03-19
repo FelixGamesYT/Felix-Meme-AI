@@ -3,17 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="manifest.json">
     <title>MemeVision Pro - Felix</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.cdnfonts.com/css/impact" rel="stylesheet">
     <style>
         .font-impact { font-family: 'Impact', sans-serif; }
-        body { background-color: #050505; color: white; }
-        .goog-te-gadget-simple { background: transparent !important; border: none !important; }
+        body { background-color: #050505; color: white; -webkit-tap-highlight-color: transparent; }
+        #google_translate_element { min-height: 40px; }
+        .goog-te-gadget-simple { background: #18181b !important; border: 1px solid #27272a !important; padding: 8px !important; border-radius: 12px !important; color: #3b82f6 !important; }
         .goog-te-gadget-icon { display: none !important; }
+        .goog-te-menu-value span { color: #3b82f6 !important; font-size: 12px !important; font-weight: bold !important; }
     </style>
 </head>
 <body>
@@ -33,6 +37,16 @@
             const [loading, setLoading] = useState(false);
             const [showResult, setShowResult] = useState(false);
             const [error, setError] = useState(null);
+            const memeRef = useRef(null);
+
+            // Registrar/Atualizar Service Worker
+            useEffect(() => {
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.register('./sw.js').then(reg => {
+                        reg.update(); // Força busca por nova versão do SW
+                    });
+                }
+            }, []);
 
             useEffect(() => {
                 localStorage.setItem('gemini_api_key', apiKey);
@@ -47,13 +61,35 @@
                         setImage(ev.target.result);
                         setImageBase64(ev.target.result.split(',')[1]);
                         setShowResult(false);
+                        setError(null);
                     };
                     reader.readAsDataURL(file);
                 }
             };
 
+            const speakMeme = () => {
+                const text = `${memeTexts.top}. ${memeTexts.bottom}`;
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = idioma.toLowerCase().includes('portugal') ? 'pt-PT' : 'pt-BR';
+                window.speechSynthesis.cancel();
+                window.speechSynthesis.speak(utterance);
+            };
+
+            const downloadMeme = async () => {
+                if (!memeRef.current) return;
+                try {
+                    const canvas = await html2canvas(memeRef.current, { useCORS: true, backgroundColor: '#000' });
+                    const link = document.createElement('a');
+                    link.download = `meme_${Date.now()}.png`;
+                    link.href = canvas.toDataURL();
+                    link.click();
+                } catch (e) {
+                    alert("Erro ao baixar. Tente tirar print ou segurar na imagem.");
+                }
+            };
+
             const gerarMeme = async () => {
-                if (!apiKey) return setError("Falta a API Key!");
+                if (!apiKey) return setError("ERRO: Precisas da API Key!");
                 setLoading(true);
                 setError(null);
 
@@ -64,7 +100,7 @@
                         body: JSON.stringify({
                             contents: [{
                                 parts: [
-                                    { text: `SISTEMA: Criador de Memes. GÍRIAS: ${idioma}. TEMA: ${tema}. FORMATO: Texto Cima | Texto Baixo. Sem explicações.` },
+                                    { text: `SISTEMA: Criador de Memes Profissional. GÍRIAS LOCAIS: ${idioma}. TEMA: ${tema || 'Aleatório'}. INSTRUÇÃO: Cria um texto curto para cima e um para baixo. FORMATO: Texto Cima | Texto Baixo. Não uses etiquetas.` },
                                     { inline_data: { mime_type: "image/jpeg", data: imageBase64 } }
                                 ]
                             }]
@@ -72,83 +108,107 @@
                     });
 
                     const data = await resp.json();
+                    if (data.error) throw new Error(data.error.message);
+                    
                     const txt = data.candidates[0].content.parts[0].text;
                     const [top, bottom] = txt.split('|');
-                    setMemeTexts({ top: top?.trim(), bottom: bottom?.trim() });
+                    setMemeTexts({ top: top?.trim() || '', bottom: bottom?.trim() || '' });
                     setShowResult(true);
+                    
+                    setTimeout(() => {
+                        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                    }, 500);
+
                 } catch (err) {
-                    setError("Erro na conexão com a IA.");
+                    setError("Erro na IA. Verifica a chave ou a imagem.");
+                    console.error(err);
                 } finally {
                     setLoading(false);
                 }
             };
 
             return (
-                <div className="max-w-md mx-auto p-6 space-y-6">
-                    <header className="flex justify-between items-center py-4">
-                        <h1 className="text-2xl font-black italic text-blue-500">MEMEVISION PRO</h1>
+                <div className="max-w-md mx-auto p-4 space-y-6 pb-10">
+                    <header className="flex flex-col items-center gap-2 pt-6">
+                        <h1 className="text-3xl font-black italic tracking-tighter text-blue-500">MEMEVISION <span className="text-zinc-500 not-italic font-light">PRO</span></h1>
                         <div id="google_translate_element"></div>
                     </header>
 
-                    <div className="bg-zinc-900 p-6 rounded-[2rem] border border-zinc-800 space-y-4 shadow-2xl">
-                        <input 
-                            type="password" 
-                            placeholder="API KEY DO GEMINI" 
-                            className="w-full bg-zinc-800 p-4 rounded-xl text-sm outline-none border border-transparent focus:border-blue-500"
-                            value={apiKey}
-                            onChange={e => setApiKey(e.target.value)}
-                        />
+                    <div className="bg-zinc-900/80 backdrop-blur-md p-6 rounded-[2.5rem] border border-zinc-800 space-y-4 shadow-2xl">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold uppercase text-zinc-500 ml-2 tracking-widest">Configuração IA</label>
+                            <input 
+                                type="password" 
+                                placeholder="Colar Gemini API Key..." 
+                                className="w-full bg-zinc-800 p-4 rounded-2xl text-sm outline-none border-2 border-transparent focus:border-blue-500 transition-all"
+                                value={apiKey}
+                                onChange={e => setApiKey(e.target.value)}
+                            />
+                        </div>
                         
                         <div className="flex gap-2">
-                            <input placeholder="Gírias (Ex: RJ)" className="w-1/2 bg-zinc-800 p-4 rounded-xl text-sm" value={idioma} onChange={e => setIdioma(e.target.value)} />
-                            <input placeholder="Tema" className="w-1/2 bg-zinc-800 p-4 rounded-xl text-sm" value={tema} onChange={e => setTema(e.target.value)} />
+                            <input placeholder="Gírias/País" className="w-1/2 bg-zinc-800 p-4 rounded-2xl text-sm outline-none border-2 border-transparent focus:border-blue-500" value={idioma} onChange={e => setIdioma(e.target.value)} />
+                            <input placeholder="Tema (Opcional)" className="w-1/2 bg-zinc-800 p-4 rounded-2xl text-sm outline-none border-2 border-transparent focus:border-blue-500" value={tema} onChange={e => setTema(e.target.value)} />
                         </div>
 
                         {!image ? (
-                            <label className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-zinc-700 rounded-2xl cursor-pointer hover:bg-zinc-800 transition-colors">
-                                <span className="text-xs font-bold text-zinc-500 uppercase">Carregar Foto</span>
-                                <input type="file" className="hidden" onChange={handleImage} />
+                            <label className="flex flex-col items-center justify-center h-52 border-2 border-dashed border-zinc-700 rounded-[2rem] cursor-pointer hover:bg-zinc-800/50 transition-all group">
+                                <div className="p-4 bg-zinc-800 rounded-full group-hover:scale-110 transition-transform">📸</div>
+                                <span className="text-[10px] font-black text-zinc-500 uppercase mt-2 tracking-widest">Escolher Foto</span>
+                                <input type="file" className="hidden" accept="image/*" onChange={handleImage} />
                             </label>
                         ) : (
-                            <div className="relative">
-                                <img src={image} className="w-full h-48 object-cover rounded-2xl" />
-                                <button onClick={() => setImage(null)} className="absolute top-2 right-2 bg-red-500 p-2 rounded-full text-white">X</button>
+                            <div className="relative group">
+                                <img src={image} className="w-full h-52 object-cover rounded-[2rem] border-2 border-zinc-800" />
+                                <button onClick={() => setImage(null)} className="absolute top-3 right-3 bg-red-500/90 hover:bg-red-600 p-2 rounded-full text-white shadow-lg transition-all">✕</button>
                             </div>
                         )}
 
-                        <div className="flex items-center justify-between p-4 bg-zinc-800/50 rounded-xl">
-                            <span className="text-[10px] font-bold uppercase text-zinc-400 italic">Legenda Clássica</span>
+                        <div className="flex items-center justify-between p-4 bg-zinc-950/50 rounded-2xl border border-zinc-800/50">
+                            <span className="text-[10px] font-black uppercase text-zinc-500 italic">Layout Clássico</span>
                             <button 
                                 onClick={() => setIsUnobstructed(!isUnobstructed)}
-                                className={`w-10 h-6 rounded-full relative transition-colors ${isUnobstructed ? 'bg-blue-600' : 'bg-zinc-600'}`}
+                                className={`w-12 h-7 rounded-full relative transition-all ${isUnobstructed ? 'bg-blue-600' : 'bg-zinc-700'}`}
                             >
-                                <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-all ${isUnobstructed ? 'left-5' : 'left-1'}`} />
+                                <div className={`w-5 h-5 bg-white rounded-full absolute top-1 transition-all ${isUnobstructed ? 'left-6' : 'left-1'}`} />
                             </button>
                         </div>
 
                         <button 
                             onClick={gerarMeme}
                             disabled={loading || !image}
-                            className="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase italic hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-50"
+                            className={`w-full py-5 rounded-[2rem] font-black text-white shadow-xl flex items-center justify-center gap-3 transition-all active:scale-95
+                                ${loading ? 'bg-zinc-800' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-900/20'}`}
                         >
-                            {loading ? "A processar..." : "GERAR MEME COM IA"}
+                            {loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <span className="text-lg italic uppercase tracking-tighter">Gerar Meme Pro</span>}
                         </button>
                     </div>
 
+                    {error && <div className="bg-red-900/20 border border-red-800 text-red-400 text-[10px] font-bold p-4 rounded-2xl text-center uppercase tracking-widest">{error}</div>}
+
                     {showResult && (
-                        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
-                            <div className="bg-black rounded-[2rem] overflow-hidden border-4 border-zinc-900 shadow-2xl">
-                                {isUnobstructed && <div className="p-4 text-center font-impact text-2xl uppercase">{memeTexts.top}</div>}
-                                <div className="relative">
-                                    <img src={image} className="w-full" />
+                        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-8 duration-500">
+                            <div ref={memeRef} className="bg-black rounded-[2.5rem] overflow-hidden border-4 border-zinc-900 shadow-2xl flex flex-col items-center">
+                                {isUnobstructed && <div className="w-full py-5 px-6 text-center font-impact text-2xl uppercase leading-tight text-white">{memeTexts.top}</div>}
+                                <div className="relative w-full">
+                                    <img src={image} className="w-full h-auto" />
                                     {!isUnobstructed && (
                                         <>
-                                            <div className="absolute top-4 w-full text-center font-impact text-3xl uppercase text-white [text-shadow:2px_2px_0_#000,-2px_-2px_0_#000]">{memeTexts.top}</div>
-                                            <div className="absolute bottom-4 w-full text-center font-impact text-3xl uppercase text-white [text-shadow:2px_2px_0_#000,-2px_-2px_0_#000]">{memeTexts.bottom}</div>
+                                            <div className="absolute top-4 w-full px-4 text-center font-impact text-3xl uppercase text-white [text-shadow:3px_3px_0_#000,-3px_-3px_0_#000,3px_-3px_0_#000,-3px_3px_0_#000]">{memeTexts.top}</div>
+                                            <div className="absolute bottom-6 w-full px-4 text-center font-impact text-3xl uppercase text-white [text-shadow:3px_3px_0_#000,-3px_-3px_0_#000,3px_-3px_0_#000,-3px_3px_0_#000]">{memeTexts.bottom}</div>
                                         </>
                                     )}
                                 </div>
-                                {isUnobstructed && <div className="p-4 text-center font-impact text-2xl uppercase">{memeTexts.bottom}</div>}
+                                {isUnobstructed && <div className="w-full py-5 px-6 text-center font-impact text-2xl uppercase leading-tight text-white">{memeTexts.bottom}</div>}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <button onClick={speakMeme} className="bg-zinc-900 p-5 rounded-[1.8rem] font-black text-[10px] uppercase flex items-center justify-center gap-2 border border-zinc-800 active:scale-95 transition-all">
+                                    <span className="text-xl">🔊</span> Ouvir
+                                </button>
+                                <button onClick={downloadMeme} className="bg-zinc-900 p-5 rounded-[1.8rem] font-black text-[10px] uppercase flex items-center justify-center gap-2 border border-zinc-800 active:scale-95 transition-all">
+                                    <span className="text-xl">💾</span> Baixar
+                                </button>
                             </div>
                         </div>
                     )}
@@ -162,7 +222,7 @@
 
     <script type="text/javascript">
         function googleTranslateElementInit() {
-            new google.translate.TranslateElement({pageLanguage: 'pt'}, 'google_translate_element');
+            new google.translate.TranslateElement({pageLanguage: 'pt', layout: google.translate.TranslateElement.InlineLayout.SIMPLE}, 'google_translate_element');
         }
     </script>
     <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
